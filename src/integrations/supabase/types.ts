@@ -53,6 +53,30 @@ export type Database = {
         }
         Relationships: []
       }
+      blocked_dates: {
+        Row: {
+          blocked_date: string
+          created_at: string
+          doctor_id: string
+          id: string
+          reason: string | null
+        }
+        Insert: {
+          blocked_date: string
+          created_at?: string
+          doctor_id: string
+          id?: string
+          reason?: string | null
+        }
+        Update: {
+          blocked_date?: string
+          created_at?: string
+          doctor_id?: string
+          id?: string
+          reason?: string | null
+        }
+        Relationships: []
+      }
       doctor_availability: {
         Row: {
           created_at: string
@@ -314,6 +338,10 @@ export type Database = {
       }
     }
     Functions: {
+      doctor_has_patient_access: {
+        Args: { _doctor: string; _patient: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

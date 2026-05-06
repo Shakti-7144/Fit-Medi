@@ -1,13 +1,18 @@
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { Heart, Home, Activity, Utensils, FileHeart, Stethoscope, LogOut, CalendarCheck, Users, Settings, UserCog } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
 import { cn } from "@/lib/utils";
 
-const patientItems = [
+const fitnessItems = [
   { to: "/choice", icon: Home, label: "Home" },
   { to: "/fitness", icon: Activity, label: "Fitness" },
   { to: "/meals", icon: Utensils, label: "Meals" },
+  { to: "/profile", icon: Settings, label: "Profile" },
+];
+
+const healthItems = [
+  { to: "/choice", icon: Home, label: "Home" },
   { to: "/health", icon: FileHeart, label: "Records" },
   { to: "/symptoms", icon: Stethoscope, label: "Symptoms" },
   { to: "/doctors", icon: Users, label: "Doctors" },
@@ -26,7 +31,10 @@ export const AppLayout = () => {
   const { signOut } = useAuth();
   const { role } = useRole();
   const nav = useNavigate();
-  const items = role === "doctor" ? doctorItems : patientItems;
+  const loc = useLocation();
+  const healthRoutes = ["/health", "/symptoms", "/doctors", "/appointments", "/book"];
+  const isHealth = healthRoutes.some((r) => loc.pathname.startsWith(r));
+  const items = role === "doctor" ? doctorItems : isHealth ? healthItems : fitnessItems;
   return (
     <div className="min-h-screen flex w-full bg-muted/30">
       <aside className="hidden md:flex w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground">

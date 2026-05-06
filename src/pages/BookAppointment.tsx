@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 type Doc = { user_id: string; specialty: string; bio: string | null; name: string | null; avatar_url: string | null; consultation_fee: number | null };
 type Slot = { day_of_week: number; start_time: string; end_time: string };
 type Existing = { scheduled_at: string };
+type Block = { blocked_date: string };
 
 const BookAppointment = () => {
   const { doctorId = "" } = useParams();
@@ -25,6 +26,7 @@ const BookAppointment = () => {
   const [doc, setDoc] = useState<Doc | null>(null);
   const [avail, setAvail] = useState<Slot[]>([]);
   const [existing, setExisting] = useState<Existing[]>([]);
+  const [blocked, setBlocked] = useState<Set<string>>(new Set());
   const [date, setDate] = useState<Date | undefined>(addDays(new Date(), 1));
   const [time, setTime] = useState<string>("");
   const [reason, setReason] = useState("");
@@ -33,18 +35,22 @@ const BookAppointment = () => {
 
   useEffect(() => {
     (async () => {
-      const [d, a, e] = await Promise.all([
+      const [d, a, e, b] = await Promise.all([
         (supabase.from as any)("doctors_directory").select("*").eq("user_id", doctorId).maybeSingle(),
         supabase.from("doctor_availability").select("*").eq("doctor_id", doctorId),
         supabase.from("appointments").select("scheduled_at").eq("doctor_id", doctorId).in("status", ["pending", "confirmed"]),
+        supabase.from("blocked_dates").select("blocked_date").eq("doctor_id", doctorId),
       ]);
       setDoc(d.data as any); setAvail((a.data as Slot[]) || []); setExisting((e.data as Existing[]) || []);
+      setBlocked(new Set(((b.data as Block[]) || []).map(x => x.blocked_date)));
       setLoading(false);
     })();
   }, [doctorId]);
 
   const slots = useMemo(() => {
     if (!date) return [];
+    const key = format(date, "yyyy-MM-dd");
+    if (blocked.has(key)) return [];
     const dow = date.getDay();
     const todays = avail.filter(a => a.day_of_week === dow);
     const out: string[] = [];
@@ -59,7 +65,7 @@ const BookAppointment = () => {
     const taken = new Set(existing.map(e => format(new Date(e.scheduled_at), "yyyy-MM-dd HH:mm"))
       .filter(k => k.startsWith(format(date, "yyyy-MM-dd"))));
     return out.filter(t => !taken.has(`${format(date, "yyyy-MM-dd")} ${t}`));
-  }, [date, avail, existing]);
+  }, [date, avail, existing, blocked]);
 
   const book = async () => {
     if (!user || !date || !time) return toast.error("Pick date and time");
@@ -99,7 +105,7 @@ const BookAppointment = () => {
           <h3 className="font-display text-2xl">Select a date</h3>
           <Calendar
             mode="single" selected={date} onSelect={setDate}
-            disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0))}
+            disabled={(d) => d < new Date(new Date().setHours(0, 0, 0, 0)) || blocked.has(format(d, "yyyy-MM-dd"))}
             className={cn("p-3 pointer-events-auto mt-2")}
           />
         </Card>

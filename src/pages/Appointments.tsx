@@ -4,13 +4,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CalendarCheck, X } from "lucide-react";
+import { Loader2, CalendarCheck, X, Video, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
 type Appt = {
   id: string; doctor_id: string; scheduled_at: string; reason: string | null;
   status: "pending" | "confirmed" | "declined" | "completed" | "cancelled";
+  appointment_type: "video" | "in_person";
   doctor_notes: string | null;
 };
 type Doc = { user_id: string; name: string | null; specialty: string };
@@ -73,7 +74,12 @@ const Appointments = () => {
                 <div className="grid h-12 w-12 place-items-center rounded-2xl bg-secondary text-primary"><CalendarCheck className="h-5 w-5" /></div>
                 <div className="flex-1 min-w-[200px]">
                   <div className="font-medium">Dr. {d?.name || "—"} <span className="text-muted-foreground font-normal">· {d?.specialty}</span></div>
-                  <div className="text-sm text-muted-foreground mt-0.5">{format(new Date(a.scheduled_at), "PPP · p")}</div>
+                  <div className="text-sm text-muted-foreground mt-0.5 flex items-center gap-2">
+                    {format(new Date(a.scheduled_at), "PPP · p")}
+                    <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-muted">
+                      {a.appointment_type === "video" ? <><Video className="h-3 w-3" />Video</> : <><Building2 className="h-3 w-3" />Clinic</>}
+                    </span>
+                  </div>
                   {a.reason && <p className="text-sm mt-2">{a.reason}</p>}
                   {a.doctor_notes && <p className="text-sm mt-2 p-3 rounded-xl bg-muted/50"><strong>Doctor's note:</strong> {a.doctor_notes}</p>}
                 </div>

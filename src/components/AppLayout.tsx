@@ -17,7 +17,6 @@ const healthItems = [
   { to: "/symptoms", icon: Stethoscope, label: "Symptoms" },
   { to: "/doctors", icon: Users, label: "Doctors" },
   { to: "/appointments", icon: CalendarCheck, label: "Appointments" },
-  { to: "/profile", icon: Settings, label: "Profile" },
 ];
 
 const doctorItems = [

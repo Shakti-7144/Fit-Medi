@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       appointments: {
         Row: {
+          appointment_type: Database["public"]["Enums"]["appt_type"]
           created_at: string
           doctor_id: string
           doctor_notes: string | null
@@ -28,6 +29,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          appointment_type?: Database["public"]["Enums"]["appt_type"]
           created_at?: string
           doctor_id: string
           doctor_notes?: string | null
@@ -40,6 +42,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          appointment_type?: Database["public"]["Enums"]["appt_type"]
           created_at?: string
           doctor_id?: string
           doctor_notes?: string | null
@@ -358,6 +361,7 @@ export type Database = {
         | "declined"
         | "completed"
         | "cancelled"
+      appt_type: "video" | "in_person"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -493,6 +497,7 @@ export const Constants = {
         "completed",
         "cancelled",
       ],
+      appt_type: ["video", "in_person"],
     },
   },
 } as const

@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
-import { Heart, Loader2 } from "lucide-react";
+import { Heart, Loader2, User as UserIcon, Stethoscope } from "lucide-react";
 import authBg from "@/assets/auth-bg.jpg";
 import { z } from "zod";
 
@@ -26,6 +27,7 @@ const Auth = () => {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ email: "", password: "", name: "" });
+  const [role, setRole] = useState<"patient" | "doctor">("patient");
 
   if (user) return <Navigate to="/choice" replace />;
 
@@ -41,8 +43,14 @@ const Auth = () => {
           options: { emailRedirectTo: `${window.location.origin}/`, data: { name: form.name } },
         });
         if (error) throw error;
+        // Persist role immediately
+        const { data: sess } = await supabase.auth.getSession();
+        const uid = sess.session?.user.id;
+        if (uid) {
+          await supabase.from("user_roles").insert({ user_id: uid, role });
+        }
         toast.success("Account created. You're in.");
-        nav("/role");
+        nav("/choice");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password });
         if (error) throw error;
@@ -95,7 +103,22 @@ const Auth = () => {
 
             <form onSubmit={submit} className="space-y-4">
               {mode === "signup" && (
-                <div><Label>Full name</Label><Input className="mt-1.5 h-12 rounded-xl" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Jane Doe" /></div>
+                <>
+                  <div><Label>Full name</Label><Input className="mt-1.5 h-12 rounded-xl" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Jane Doe" /></div>
+                  <div>
+                    <Label>I am a</Label>
+                    <RadioGroup value={role} onValueChange={(v) => setRole(v as "patient" | "doctor")} className="mt-2 grid grid-cols-2 gap-3">
+                      <label htmlFor="r-patient" className={`flex items-center gap-2 rounded-xl border p-3 cursor-pointer ${role === "patient" ? "border-primary bg-secondary/40" : "border-border"}`}>
+                        <RadioGroupItem id="r-patient" value="patient" />
+                        <UserIcon className="h-4 w-4" /> <span className="text-sm font-medium">Patient</span>
+                      </label>
+                      <label htmlFor="r-doctor" className={`flex items-center gap-2 rounded-xl border p-3 cursor-pointer ${role === "doctor" ? "border-primary bg-secondary/40" : "border-border"}`}>
+                        <RadioGroupItem id="r-doctor" value="doctor" />
+                        <Stethoscope className="h-4 w-4" /> <span className="text-sm font-medium">Doctor</span>
+                      </label>
+                    </RadioGroup>
+                  </div>
+                </>
               )}
               <div><Label>Email</Label><Input type="email" className="mt-1.5 h-12 rounded-xl" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="you@example.com" required /></div>
               <div><Label>Password</Label><Input type="password" className="mt-1.5 h-12 rounded-xl" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="••••••••" required /></div>

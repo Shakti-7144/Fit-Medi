@@ -11,8 +11,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_evt, s) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((evt, s) => {
       setSession(s); setUser(s?.user ?? null); setLoading(false);
+      if (evt === "SIGNED_IN" && s?.user) {
+        const pending = localStorage.getItem("pending_role");
+        if (pending === "patient" || pending === "doctor") {
+          // Defer to avoid blocking the auth callback
+          setTimeout(async () => {
+            const { data: existing } = await supabase
+              .from("user_roles").select("role").eq("user_id", s.user.id).maybeSingle();
+            if (!existing) {
+              await supabase.from("user_roles").insert({ user_id: s.user.id, role: pending as "patient" | "doctor" });
+            }
+            localStorage.removeItem("pending_role");
+          }, 0);
+        }
+      }
     });
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session); setUser(session?.user ?? null); setLoading(false);

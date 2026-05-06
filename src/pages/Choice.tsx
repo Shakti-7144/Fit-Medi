@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { Activity, FileHeart, LogOut, Heart, CalendarCheck, Users, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,6 +11,7 @@ const Choice = () => {
   const { role, loading } = useRole();
 
   if (loading) return <div className="min-h-screen grid place-items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+  if (!role) return <Navigate to="/role" replace />;
 
   const tiles = role === "doctor"
     ? [

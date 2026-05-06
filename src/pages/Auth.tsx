@@ -48,10 +48,13 @@ const Auth = () => {
         const { data: sess } = await supabase.auth.getSession();
         const uid = sess.session?.user.id;
         if (uid) {
-          await supabase.from("user_roles").insert({ user_id: uid, role });
+          const { data: existing } = await supabase.from("user_roles").select("role").eq("user_id", uid).maybeSingle();
+          if (!existing) {
+            await supabase.from("user_roles").insert({ user_id: uid, role });
+          }
           localStorage.removeItem("pending_role");
           toast.success("Account created. You're in.");
-          nav("/choice");
+          nav(role === "doctor" ? "/doctor" : "/choice");
         } else {
           toast.success("Check your email to confirm your account, then sign in.");
           setMode("signin");

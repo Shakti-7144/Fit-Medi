@@ -8,13 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Loader2, Check, X, CalendarCheck, Stethoscope, FileText, CalendarClock } from "lucide-react";
+import { Loader2, Check, X, CalendarCheck, Stethoscope, FileText, CalendarClock, Video, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
 type Appt = {
   id: string; patient_id: string; scheduled_at: string; reason: string | null;
   status: "pending" | "confirmed" | "declined" | "completed" | "cancelled"; doctor_notes: string | null;
+  appointment_type: "video" | "in_person";
 };
 type Patient = { id: string; name: string | null; email: string | null; avatar_url: string | null };
 
@@ -82,7 +83,12 @@ const DoctorDashboard = () => {
           <div className="grid h-12 w-12 place-items-center rounded-2xl bg-secondary text-primary"><Stethoscope className="h-5 w-5" /></div>
           <div className="flex-1 min-w-[200px]">
             <div className="font-medium">{p?.name || p?.email || "Patient"}</div>
-            <div className="text-sm text-muted-foreground mt-0.5">{format(new Date(a.scheduled_at), "PPP · p")}</div>
+            <div className="text-sm text-muted-foreground mt-0.5 flex items-center gap-2 flex-wrap">
+              {format(new Date(a.scheduled_at), "PPP · p")}
+              <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-muted">
+                {a.appointment_type === "video" ? <><Video className="h-3 w-3" />Video</> : <><Building2 className="h-3 w-3" />Clinic</>}
+              </span>
+            </div>
             {a.reason && <p className="text-sm mt-2">{a.reason}</p>}
             {a.doctor_notes && <p className="text-sm mt-2 p-3 rounded-xl bg-muted/50"><strong>Note:</strong> {a.doctor_notes}</p>}
             {noteFor === a.id && (

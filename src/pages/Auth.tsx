@@ -38,19 +38,24 @@ const Auth = () => {
     setLoading(true);
     try {
       if (mode === "signup") {
+        // Remember the chosen role so it can be applied after email verification / first sign-in
+        localStorage.setItem("pending_role", role);
         const { error } = await supabase.auth.signUp({
           email: form.email, password: form.password,
           options: { emailRedirectTo: `${window.location.origin}/`, data: { name: form.name } },
         });
         if (error) throw error;
-        // Persist role immediately
         const { data: sess } = await supabase.auth.getSession();
         const uid = sess.session?.user.id;
         if (uid) {
           await supabase.from("user_roles").insert({ user_id: uid, role });
+          localStorage.removeItem("pending_role");
+          toast.success("Account created. You're in.");
+          nav("/choice");
+        } else {
+          toast.success("Check your email to confirm your account, then sign in.");
+          setMode("signin");
         }
-        toast.success("Account created. You're in.");
-        nav("/choice");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password });
         if (error) throw error;
@@ -110,7 +115,7 @@ const Auth = () => {
                     <RadioGroup value={role} onValueChange={(v) => setRole(v as "patient" | "doctor")} className="mt-2 grid grid-cols-2 gap-3">
                       <label htmlFor="r-patient" className={`flex items-center gap-2 rounded-xl border p-3 cursor-pointer ${role === "patient" ? "border-primary bg-secondary/40" : "border-border"}`}>
                         <RadioGroupItem id="r-patient" value="patient" />
-                        <UserIcon className="h-4 w-4" /> <span className="text-sm font-medium">Patient</span>
+                        <UserIcon className="h-4 w-4" /> <span className="text-sm font-medium">User</span>
                       </label>
                       <label htmlFor="r-doctor" className={`flex items-center gap-2 rounded-xl border p-3 cursor-pointer ${role === "doctor" ? "border-primary bg-secondary/40" : "border-border"}`}>
                         <RadioGroupItem id="r-doctor" value="doctor" />

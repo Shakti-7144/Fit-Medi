@@ -38,7 +38,7 @@ const RoleSelect = () => {
         </div>
         <div className="grid md:grid-cols-2 gap-6">
           {[
-            { role: "patient" as const, icon: User, title: "I'm a Patient", desc: "Track fitness, log meals, and manage your health records.", grad: "gradient-hero" },
+            { role: "patient" as const, icon: User, title: "I'm a User", desc: "Track fitness, log meals, and manage your health records.", grad: "gradient-hero" },
             { role: "doctor" as const, icon: Stethoscope, title: "I'm a Doctor", desc: "Manage appointments, schedule, and patient summaries.", grad: "gradient-coral" },
           ].map(({ role, icon: Icon, title, desc, grad }) => (
             <Card key={role} className="group cursor-pointer border-0 shadow-soft hover:shadow-elegant transition-all duration-500 rounded-3xl p-8 hover:-translate-y-1" onClick={() => pick(role)}>

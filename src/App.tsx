@@ -6,7 +6,6 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/AppLayout";
 import Auth from "./pages/Auth";
-import RoleSelect from "./pages/RoleSelect";
 import Choice from "./pages/Choice";
 import Fitness from "./pages/Fitness";
 import Meals from "./pages/Meals";
@@ -32,7 +31,6 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Navigate to="/auth" replace />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/role" element={<ProtectedRoute><RoleSelect /></ProtectedRoute>} />
             <Route path="/choice" element={<ProtectedRoute><Choice /></ProtectedRoute>} />
             <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
               <Route path="/fitness" element={<Fitness />} />

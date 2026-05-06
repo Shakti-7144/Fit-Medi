@@ -11,7 +11,7 @@ const Choice = () => {
   const { role, loading } = useRole();
 
   if (loading) return <div className="min-h-screen grid place-items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
-  if (!role) return <Navigate to="/role" replace />;
+  if (role === "doctor") return <Navigate to="/doctor" replace />;
 
   const tiles = role === "doctor"
     ? [

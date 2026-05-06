@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Label } from "@/components/ui/label";
-import { Loader2, Stethoscope, ArrowLeft } from "lucide-react";
+import { Loader2, Stethoscope, ArrowLeft, Video, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { format, addDays } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -30,6 +30,7 @@ const BookAppointment = () => {
   const [date, setDate] = useState<Date | undefined>(addDays(new Date(), 1));
   const [time, setTime] = useState<string>("");
   const [reason, setReason] = useState("");
+  const [apptType, setApptType] = useState<"video" | "in_person">("in_person");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -69,11 +70,13 @@ const BookAppointment = () => {
 
   const book = async () => {
     if (!user || !date || !time) return toast.error("Pick date and time");
+    if (!reason.trim()) return toast.error("Please describe your symptoms");
     setSubmitting(true);
     const [h, m] = time.split(":").map(Number);
     const dt = new Date(date); dt.setHours(h, m, 0, 0);
     const { error } = await supabase.from("appointments").insert({
-      patient_id: user.id, doctor_id: doctorId, scheduled_at: dt.toISOString(), reason: reason || null,
+      patient_id: user.id, doctor_id: doctorId, scheduled_at: dt.toISOString(),
+      reason: reason, appointment_type: apptType,
     });
     if (error) { toast.error(error.message); setSubmitting(false); return; }
     toast.success("Request sent. The doctor will confirm soon.");
@@ -126,7 +129,22 @@ const BookAppointment = () => {
             </div>
           )}
           <div className="mt-6">
-            <Label>Reason for visit (optional)</Label>
+            <Label>Appointment type</Label>
+            <div className="mt-2 grid grid-cols-2 gap-3">
+              {[
+                { v: "in_person" as const, icon: Building2, label: "Clinic visit" },
+                { v: "video" as const, icon: Video, label: "Video consult" },
+              ].map(({ v, icon: Icon, label }) => (
+                <button type="button" key={v} onClick={() => setApptType(v)}
+                  className={cn("flex items-center gap-2 rounded-xl border p-3 text-sm font-medium transition-colors",
+                    apptType === v ? "border-primary bg-secondary/40 text-foreground" : "border-border text-muted-foreground hover:bg-muted/40")}>
+                  <Icon className="h-4 w-4" /> {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="mt-4">
+            <Label>Symptoms / reason for visit</Label>
             <Textarea className="mt-1.5 rounded-xl" placeholder="Briefly describe your symptoms or reason"
               value={reason} onChange={e => setReason(e.target.value)} />
           </div>

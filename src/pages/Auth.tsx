@@ -12,10 +12,12 @@ import { Heart, Loader2 } from "lucide-react";
 import authBg from "@/assets/auth-bg.jpg";
 import { z } from "zod";
 
-const schema = z.object({
+const baseSchema = z.object({
   email: z.string().trim().email("Invalid email").max(255),
   password: z.string().min(6, "At least 6 characters").max(100),
-  name: z.string().trim().min(1).max(80).optional(),
+});
+const signupSchema = baseSchema.extend({
+  name: z.string().trim().min(1, "Name is required").max(80),
 });
 
 const Auth = () => {
@@ -29,7 +31,7 @@ const Auth = () => {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsed = schema.safeParse(form);
+    const parsed = mode === "signup" ? signupSchema.safeParse(form) : baseSchema.safeParse(form);
     if (!parsed.success) { toast.error(parsed.error.errors[0].message); return; }
     setLoading(true);
     try {

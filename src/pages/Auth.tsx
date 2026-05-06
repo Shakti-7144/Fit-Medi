@@ -63,7 +63,14 @@ const Auth = () => {
         const { error } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password });
         if (error) throw error;
         toast.success("Welcome back");
-        nav("/choice");
+        const { data: sess } = await supabase.auth.getSession();
+        const uid = sess.session?.user.id;
+        if (uid) {
+          const { data: r } = await supabase.from("user_roles").select("role").eq("user_id", uid).maybeSingle();
+          nav(r?.role === "doctor" ? "/doctor" : "/choice");
+        } else {
+          nav("/choice");
+        }
       }
     } catch (err: any) {
       toast.error(err.message || "Something went wrong");

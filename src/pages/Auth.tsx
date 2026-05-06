@@ -48,10 +48,13 @@ const Auth = () => {
         const { data: sess } = await supabase.auth.getSession();
         const uid = sess.session?.user.id;
         if (uid) {
-          await supabase.from("user_roles").insert({ user_id: uid, role });
+          const { data: existing } = await supabase.from("user_roles").select("role").eq("user_id", uid).maybeSingle();
+          if (!existing) {
+            await supabase.from("user_roles").insert({ user_id: uid, role });
+          }
           localStorage.removeItem("pending_role");
           toast.success("Account created. You're in.");
-          nav("/choice");
+          nav(role === "doctor" ? "/doctor" : "/choice");
         } else {
           toast.success("Check your email to confirm your account, then sign in.");
           setMode("signin");
@@ -60,7 +63,14 @@ const Auth = () => {
         const { error } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password });
         if (error) throw error;
         toast.success("Welcome back");
-        nav("/choice");
+        const { data: sess } = await supabase.auth.getSession();
+        const uid = sess.session?.user.id;
+        if (uid) {
+          const { data: r } = await supabase.from("user_roles").select("role").eq("user_id", uid).maybeSingle();
+          nav(r?.role === "doctor" ? "/doctor" : "/choice");
+        } else {
+          nav("/choice");
+        }
       }
     } catch (err: any) {
       toast.error(err.message || "Something went wrong");

@@ -11,17 +11,12 @@ const Choice = () => {
   const { role, loading } = useRole();
 
   if (loading) return <div className="min-h-screen grid place-items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
-  if (!role) return <Navigate to="/role" replace />;
+  if (role === "doctor") return <Navigate to="/doctor" replace />;
 
-  const tiles = role === "doctor"
-    ? [
-        { to: "/doctor", icon: CalendarCheck, label: "Appointments", sub: "Patient requests & schedule", grad: "gradient-hero", shadow: "shadow-glow" },
-        { to: "/doctor/profile", icon: Settings, label: "My Practice", sub: "Profile & availability", grad: "gradient-coral", shadow: "shadow-coral" },
-      ]
-    : [
-        { to: "/fitness", icon: Activity, label: "Fitness", sub: "Track movement & meals", grad: "gradient-hero", shadow: "shadow-glow" },
-        { to: "/health", icon: FileHeart, label: "Health Records", sub: "Records & AI insights", grad: "gradient-coral", shadow: "shadow-coral" },
-      ];
+  const tiles = [
+    { to: "/fitness", icon: Activity, label: "Fitness", sub: "Track movement & meals", grad: "gradient-hero", shadow: "shadow-glow" },
+    { to: "/health", icon: FileHeart, label: "Health Records", sub: "Records & AI insights", grad: "gradient-coral", shadow: "shadow-coral" },
+  ];
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-secondary/30 via-background to-accent-soft/30">
@@ -34,9 +29,7 @@ const Choice = () => {
           <span className="font-display text-2xl text-foreground">FitMedi AI</span>
         </div>
         <div className="flex items-center gap-2">
-          {role === "patient" && (
-            <Button variant="ghost" onClick={() => nav("/doctors")}><Users className="h-4 w-4 mr-2" />Find a doctor</Button>
-          )}
+          <Button variant="ghost" onClick={() => nav("/doctors")}><Users className="h-4 w-4 mr-2" />Find a doctor</Button>
           <Button variant="ghost" onClick={() => nav("/profile")}><Settings className="h-4 w-4 mr-2" />Profile</Button>
           <Button variant="ghost" onClick={async () => { await signOut(); nav("/auth"); }}><LogOut className="h-4 w-4 mr-2" />Sign out</Button>
         </div>
@@ -45,7 +38,7 @@ const Choice = () => {
       <main className="relative z-10 mx-auto max-w-5xl px-6 pt-8 pb-20 text-center">
         <p className="text-sm font-medium uppercase tracking-widest text-primary/70">Hello{user?.email ? `, ${user.email.split("@")[0]}` : ""}</p>
         <h1 className="font-display text-5xl md:text-7xl text-foreground mt-4 leading-tight">
-          {role === "doctor" ? "Welcome, Doctor." : "What brings you here today?"}
+          What brings you here today?
         </h1>
         <p className="mt-4 text-muted-foreground max-w-xl mx-auto">Pick a space to enter. You can switch anytime.</p>
 

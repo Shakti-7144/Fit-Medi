@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
@@ -6,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Check, X, CalendarCheck, Stethoscope } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Loader2, Check, X, CalendarCheck, Stethoscope, FileText, CalendarClock } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -31,6 +33,8 @@ const DoctorDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [noteFor, setNoteFor] = useState<string | null>(null);
   const [note, setNote] = useState("");
+  const [rescheduleFor, setRescheduleFor] = useState<string | null>(null);
+  const [rescheduleAt, setRescheduleAt] = useState("");
 
   const load = async () => {
     if (!user) return;
@@ -56,6 +60,12 @@ const DoctorDashboard = () => {
   const saveNote = async (id: string) => {
     await update(id, { doctor_notes: note });
     setNoteFor(null); setNote("");
+  };
+
+  const saveReschedule = async (id: string) => {
+    if (!rescheduleAt) return toast.error("Pick a date and time");
+    await update(id, { scheduled_at: new Date(rescheduleAt).toISOString(), status: "pending" });
+    setRescheduleFor(null); setRescheduleAt("");
   };
 
   if (loading) return <div className="grid place-items-center h-screen"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
@@ -84,6 +94,15 @@ const DoctorDashboard = () => {
                 </div>
               </div>
             )}
+            {rescheduleFor === a.id && (
+              <div className="mt-3 space-y-2">
+                <Input type="datetime-local" className="rounded-xl" value={rescheduleAt} onChange={e => setRescheduleAt(e.target.value)} />
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={() => saveReschedule(a.id)}>Save new time</Button>
+                  <Button size="sm" variant="ghost" onClick={() => { setRescheduleFor(null); setRescheduleAt(""); }}>Cancel</Button>
+                </div>
+              </div>
+            )}
           </div>
           <div className="flex flex-col items-end gap-2">
             <Badge className={`rounded-full border ${statusColor[a.status]} capitalize`}>{a.status}</Badge>
@@ -95,6 +114,12 @@ const DoctorDashboard = () => {
               {a.status === "confirmed" && <>
                 <Button size="sm" variant="outline" onClick={() => update(a.id, { status: "completed" })} className="rounded-xl">Mark complete</Button>
               </>}
+              {(a.status === "pending" || a.status === "confirmed") && (
+                <Button size="sm" variant="ghost" onClick={() => { setRescheduleFor(a.id); setRescheduleAt(""); }}><CalendarClock className="h-3.5 w-3.5 mr-1" />Reschedule</Button>
+              )}
+              {(a.status === "confirmed" || a.status === "completed") && (
+                <Button asChild size="sm" variant="ghost"><Link to={`/doctor/patient/${a.patient_id}`}><FileText className="h-3.5 w-3.5 mr-1" />View summary</Link></Button>
+              )}
               {a.status !== "cancelled" && a.status !== "declined" && (
                 <Button size="sm" variant="ghost" onClick={() => { setNoteFor(a.id); setNote(a.doctor_notes || ""); }}>Add note</Button>
               )}

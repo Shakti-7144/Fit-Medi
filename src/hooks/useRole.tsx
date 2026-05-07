@@ -11,8 +11,29 @@ export const useRole = () => {
 
   useEffect(() => {
     if (!user) { setRole(null); setLoading(false); return; }
-    supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle()
-      .then(({ data }) => { setRole((data?.role as AppRole) ?? null); setLoading(false); });
+
+    let cancelled = false;
+
+    const fetchRole = async (attempt = 0) => {
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
+      const nextRole = (data?.role as AppRole) ?? null;
+      const pending = localStorage.getItem("pending_role");
+
+      if (!nextRole && pending && attempt < 5) {
+        setTimeout(() => { if (!cancelled) void fetchRole(attempt + 1); }, 250);
+        return;
+      }
+
+      if (!cancelled) {
+        setRole(nextRole);
+        setLoading(false);
+      }
+    };
+
+    setLoading(true);
+    void fetchRole();
+
+    return () => { cancelled = true; };
   }, [user]);
 
   return { role, loading };

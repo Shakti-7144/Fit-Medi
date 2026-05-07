@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate, Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
+
 import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
 import { Button } from "@/components/ui/button";
@@ -89,34 +89,26 @@ const Auth = () => {
   };
 
   const google = async () => {
-    setLoading(true);
-    localStorage.setItem("pending_role", role);
-    const r = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-      extraParams: { prompt: "select_account" },
-    });
+  setLoading(true);
+  localStorage.setItem("pending_role", role);
 
-    if (r.redirected) return;
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${window.location.origin}/choice`,
+      queryParams: {
+        prompt: "select_account",
+      },
+    },
+  });
 
-    if (r.error) {
-      localStorage.removeItem("pending_role");
-      const message = r.error instanceof Error ? r.error.message : "Google sign-in failed";
-      const normalized = message.toLowerCase();
-
-      if (normalized.includes("preview mode") || normalized.includes("legacy_flow")) {
-        toast.error("Google sign-in is blocked inside preview. Open the app in a new tab or on the published URL to continue.", { duration: 7000 });
-        window.open(window.location.href, "_blank", "noopener,noreferrer");
-      } else if (normalized.includes("popup was blocked")) {
-        toast.error("Your browser blocked the Google sign-in window. Please allow popups and try again.");
-      } else if (normalized.includes("cancelled")) {
-        toast.error("Google sign-in was cancelled.");
-      } else {
-        toast.error(message);
-      }
-    }
-
+  if (error) {
+    localStorage.removeItem("pending_role");
+    toast.error(error.message || "Google sign-in failed");
     setLoading(false);
-  };
+  }
+};
+    
 
   return (
     <div className="min-h-screen grid lg:grid-cols-[1.15fr_0.85fr] bg-background">
